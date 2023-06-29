@@ -13,7 +13,7 @@ export const Login = () => {
                 flexDirection: 'column',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#fafaf6',
+                backgroundColor: '#efefe6e7',
                 width: '20%',
                 margin: '300px auto',
                 padding: '200px 100px',
