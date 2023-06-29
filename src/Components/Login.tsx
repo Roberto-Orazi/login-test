@@ -45,14 +45,14 @@ export const Login = () => {
       <Typography variant="h4" component="h1" gutterBottom sx={{ display: 'inline-block' }}>
         Login
       </Typography>
-      <TextField id="email" name="email" label="Email" variant="outlined" defaultValue={dto.email} />
+      <TextField id="email" name="email" label="Email" variant="outlined"  />
       <TextField
         id="password"
         name="password"
         label="Password"
         variant="outlined"
         type="password"
-        defaultValue={dto.password}
+        
       />
       <ButtonLogin type="submit">Login</ButtonLogin>
     </Box>
