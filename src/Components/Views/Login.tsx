@@ -1,19 +1,42 @@
-import React from 'react'
+import React, { useEffect } from 'react'
 import Box from '@mui/material/Box'
 import TextField from '@mui/material/TextField'
 import { Typography, styled } from '@mui/material'
 import Button from '@mui/material/Button'
+import { Formik } from 'formik'
+import { useMutation } from 'react-query'
+import AuthService from '../../services/basics/auth.service'
+import { useHistory } from 'react-router-dom'
+import { LoginDto } from '../../validations/basic/auth.dto'
+import CreateValidator from '../../utils/class-validator-formik'
+import { getCredentials, setCredentials } from '../../utils/credentials.helper'
+
 
 export const Login = () => {
-  interface LoginDto {
-    email: string;
-    password: string;
+  const initialValues: LoginDto = {
+    email: '',
+    password: '',
   }
 
-  const dto: LoginDto = {
-    email: "user@mail.com",
-    password: "test1234"
+  const validate = CreateValidator(LoginDto)
+  const history = useHistory()
+  const loginMutation = useMutation(AuthService.login, {
+    onSuccess: ({ data }) => {
+      setCredentials(data)
+      goToHome()
+    }
+  })
+
+  useEffect(() => {
+    const credentials = getCredentials()
+    if (credentials) {
+      goToHome()
+    }
+  }, [])
+  const onSubmit = async (values: LoginDto) => {
+    await loginMutation.mutateAsync(values)
   }
+
   const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
     const email = event.currentTarget.email.value
@@ -21,7 +44,7 @@ export const Login = () => {
     console.log('Email:', email)
     console.log('Password:', password)
   }
-
+  const goToHome = () => history.push('/home')
   return (
     <Box
       component="form"
@@ -41,25 +64,50 @@ export const Login = () => {
       noValidate
       autoComplete="off"
     >
-      <Typography variant="h4" component="h1" gutterBottom sx={{ display: 'inline-block' }}>
-        Login
-      </Typography>
-      <TextField id="email" name="email" label="Email" variant="outlined" defaultValue={dto.email} />
-      <TextField
-        id="password"
-        name="password"
-        label="Password"
-        variant="outlined"
-        type="password"
-        defaultValue={dto.password}
-      />
-      <ButtonLogin type="submit">Login</ButtonLogin>
+      <Formik
+        enableReinitialize
+        initialValues={initialValues}
+        onSubmit={onSubmit}
+        validate={validate}
+      >
+        {(formik) => (
+          <Box>
+        <Typography variant="h4" component="h1" gutterBottom sx={{ display: 'inline-block' }}>
+          Login
+        </Typography>
+        <TextField
+          autoFocus
+          label="Email"
+          placeholder="example@example.com"
+          name='email'
+          onBlur={formik.handleBlur}
+          value={formik.values.email}
+          onChange={formik.handleChange}
+          error={formik.touched.email && Boolean(formik.errors.email)}
+          helperText={formik.touched.email && formik.errors.email}
+        />
+        <TextField
+          label="Password"
+          name='password'
+          type='password'
+          placeholder="********"
+          value={formik.values.password}
+          onBlur={formik.handleBlur}
+          onChange={formik.handleChange}
+          error={formik.touched.password && Boolean(formik.errors.password)}
+          helperText={formik.touched.password && formik.errors.password}
+        />
+        <ButtonLogin     onClick={() => formik.handleSubmit()}
+              disabled={!formik.isValid || !formik.dirty || loginMutation.isLoading}>Login</ButtonLogin>
+        </Box>
+        )}
+      </Formik>
     </Box>
   )
 }
 
 const ButtonLogin = styled(Button)`
-  background-color: #f0f0f0;
+  background-color: #7d7d7d;
   border: none;
   border-radius: 1rem;
   padding: 1rem 2rem;
@@ -69,6 +117,6 @@ const ButtonLogin = styled(Button)`
   cursor: pointer;
   transition: all 0.3s ease-in-out;
   &:hover {
-    background-color: #e0e0e0;
+    background-color: #939292;
   }
 `
