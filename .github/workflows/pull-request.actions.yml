@@ -1,0 +1,37 @@
+name: Deploy prod
+on:
+  push:
+    branches: [master]
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        node-version: [16.x]
+    env:
+      APP_ENV: ${{vars.APP_ENV}}
+      SSH_KEY: ${{secrets.SSH_KEY}}
+    steps:
+      - uses: actions/checkout@master
+      - name: Use Node.js ${{ matrix.node-version }}
+        uses: actions/setup-node@v3
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: "npm"
+      - name: Install dependencies
+        run: npm i
+      - name: Inject env vars
+        run: |
+          cat > .env << EOF
+          $APP_ENV
+          EOF
+      - name: Build
+        run: npm run build
+      - name: Deploy build to server
+        run: |
+          mkdir ~/.ssh
+          echo "$SSH_KEY" >> ~/.ssh/github-action
+          chmod 400 ~/.ssh/github-action
+          echo -e "Host vps\n\tUser root\n\tHostname 111111111\n\tIdentityFile ~/.ssh/github-action\n\tStrictHostKeyChecking No" >> ~/.ssh/config
+          rsync -re ssh ./.next/ vps:/home/xxxx/.next
+          ssh vps "pm2 restart xxxx"
