@@ -37,6 +37,8 @@
     "web-vitals": "^2.1.0"
   },
   "devDependencies": {
+    "@testing-library/jest-dom": "^5.16.5",
+    "@testing-library/react": "^12.1.5",
     "@types/dotenv": "^8.2.0",
     "@types/jest": "^27.0.1",
     "@types/lodash.debounce": "^4.0.7",
