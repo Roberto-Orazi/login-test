@@ -21,7 +21,6 @@ export const errorsCatalogs = {
     message: 'Usuario no encontrado',
     code: 'USER_NOT_FOUND',
     httpStatus: NOT_FOUND
-
   },
   USER_EMAIL_NOT_FOUND: {
     message: 'Usuario con email no encontrado',
