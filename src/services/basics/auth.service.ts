@@ -5,8 +5,8 @@ import {
   LoginDto,
 } from '../../validations/basic/auth.dto'
 
-const login = async (dto: LoginDto): Promise<Res<ICredentials>> => {
-  const res = await API.post<Res<ICredentials>>('/auth/login', dto)
+const login = async (dto: LoginDto): Promise<ICredentials> => {
+  const res = await API.post<ICredentials>('/auth/login', dto)
   return res.data
 }
 

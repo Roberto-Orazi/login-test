@@ -23,9 +23,10 @@ export const Login = () => {
   const history = useHistory()
 
   const loginMutation = useMutation(AuthService.login, {
-    onSuccess: ({ data }) => {
+    onSuccess: ( data ) => {
       setCredentials(data)
       goToHome()
+      console.log(data)
     }
   })
 

@@ -30,7 +30,7 @@ export const tryGetAPIHeaders = (): AxiosRequestHeaders | undefined => {
 }
 
 const instance = axios.create({
-  baseURL: '',
+  baseURL: 'http://localhost:5005',
 })
 
 export default instance
