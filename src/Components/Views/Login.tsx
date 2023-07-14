@@ -10,7 +10,8 @@ import { useHistory } from 'react-router-dom'
 import { LoginDto } from '../../validations/basic/auth.dto'
 import CreateValidator from '../../utils/class-validator-formik'
 import { setCredentials } from '../../utils/credentials.helper'
-
+import { useEffect } from 'react'
+import { getCredentials } from '../../utils/credentials.helper'
 
 export const Login = () => {
   const initialValues: LoginDto = {
@@ -21,6 +22,13 @@ export const Login = () => {
   const validate = CreateValidator(LoginDto)
 
   const history = useHistory()
+
+  useEffect(() => {
+    const credentials = getCredentials()
+    if (credentials) {
+      goToHome()
+    }
+  }, [])
 
   const loginMutation = useMutation(AuthService.login, {
     onSuccess: ( data ) => {
@@ -33,6 +41,7 @@ export const Login = () => {
   const onSubmit = async (values: LoginDto) => {
     await loginMutation.mutateAsync(values)
   }
+
 
   const goToHome = () => history.push('/dashboard')
   return (
