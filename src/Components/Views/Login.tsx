@@ -34,7 +34,7 @@ export const Login = () => {
     await loginMutation.mutateAsync(values)
   }
 
-  const goToHome = () => history.push('/home')
+  const goToHome = () => history.push('/dashboard')
   return (
     <Container
       component="form"
