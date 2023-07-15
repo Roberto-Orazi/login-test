@@ -42,7 +42,6 @@ export const Login = () => {
     await loginMutation.mutateAsync(values)
   }
 
-
   const goToHome = () => history.push('/dashboard')
   return (
     <Container

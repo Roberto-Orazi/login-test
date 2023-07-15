@@ -1,7 +1,7 @@
 import { Switch, Route } from 'react-router-dom'
 import { Login } from '../Views/Login'
 
-const PublicNavigation = () => (
+export const PublicRoutes = () => (
   <Switch>
     <Route exact path="/">
       <Login />
@@ -9,4 +9,3 @@ const PublicNavigation = () => (
   </Switch>
 )
 
-export default PublicNavigation

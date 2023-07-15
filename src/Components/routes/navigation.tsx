@@ -1,9 +1,9 @@
-import BasicNavigation from './PublicRoutes'
+import { PublicRoutes } from './PublicRoutes'
 import { PrivateRoutes } from './PrivateRoutes'
 
 export const AppNavigation = () => (
   <>
-    <BasicNavigation />
+    <PublicRoutes />
     <PrivateRoutes />
   </>
 )

@@ -1,6 +1,9 @@
 import * as React from 'react'
 import Box from '@mui/material/Box'
 import { DataGrid, GridColDef, GridValueGetterParams } from '@mui/x-data-grid'
+import { Button, styled } from '@mui/material'
+import { clearCredentials } from '../../utils/credentials.helper'
+import { useHistory } from 'react-router-dom'
 
 const columns: GridColDef[] = [
   { field: 'id', headerName: 'ID', width: 90 },
@@ -45,8 +48,15 @@ const rows = [
   { id: 8, lastName: 'Frances', firstName: 'Rossini', age: 36 },
   { id: 9, lastName: 'Roxie', firstName: 'Harvey', age: 65 },
 ]
-
 export const Dashboard = () => {
+
+  const history = useHistory()
+
+  const logout = () => {
+    clearCredentials()
+    history.replace('/')
+  }
+
   return (
     <Box sx={{ height: 400, width: '100%' }}>
       <DataGrid
@@ -63,6 +73,28 @@ export const Dashboard = () => {
         checkboxSelection
         disableRowSelectionOnClick
       />
+      <Box sx={{
+        display: 'flex',
+        justifyContent: 'center',
+      }}>
+      <ButtonLogout onClick={() => logout()}>Logout</ButtonLogout>
+      </Box>
     </Box>
+
   )
 }
+
+const ButtonLogout = styled(Button)`
+  background-color: #7d7d7d;
+  border: none;
+  border-radius: 1rem;
+  padding: 1rem 2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  color: #000000;
+  cursor: pointer;
+  transition: all 0.3s ease-in-out;
+  &:hover {
+    background-color: #939292;
+  }
+`
