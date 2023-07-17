@@ -16,5 +16,5 @@ export class LoginDto {
 
 export class LogoutDto {
   @IsString()
-  token!: string // device token from expo
+  token!: string
 }

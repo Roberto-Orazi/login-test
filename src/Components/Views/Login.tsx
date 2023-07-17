@@ -12,7 +12,6 @@ import CreateValidator from '../../utils/class-validator-formik'
 import { setCredentials } from '../../utils/credentials.helper'
 import { useEffect } from 'react'
 import { getCredentials } from '../../utils/credentials.helper'
-import axios from 'axios'
 
 export const Login = () => {
   const initialValues: LoginDto = {
@@ -32,23 +31,18 @@ export const Login = () => {
   }, [])
 
   const loginMutation = useMutation(AuthService.login, {
-    onSuccess: ( data ) => {
+    onSuccess: (data) => {
       setCredentials(data)
       goToHome()
       console.log(data)
-    }
+    },
+    onError: (error) => {
+      console.error(error)
+    },
   })
 
   const onSubmit = async (values: LoginDto) => {
-    try {
-      const response = await axios.post('http://localhost:5005/auth/login', values)
-      const data = response.data
-      setCredentials(data)
-      goToHome()
-      console.log(data)
-    } catch (error) {
-      console.error(error)
-    }
+    await loginMutation.mutateAsync(values)
   }
 
   const goToHome = () => history.push('/dashboard')
