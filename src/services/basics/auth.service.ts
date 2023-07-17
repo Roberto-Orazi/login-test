@@ -6,6 +6,9 @@ import {
 } from '../../validations/basic/auth.dto'
 
 const login = async (dto: LoginDto): Promise<ICredentials> => {
+  setTimeout(() => {
+    console.log("DELAY FOR RELOGIN")
+  }, 1000)
   const res = await API.post<ICredentials>('/auth/login', dto)
   return res.data
 }

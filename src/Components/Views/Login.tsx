@@ -29,6 +29,7 @@ export const Login = () => {
       goToHome()
     }
   }, [])
+  const [errorMessage, setErrorMessage] = React.useState('')
 
   const loginMutation = useMutation(AuthService.login, {
     onSuccess: (data) => {
@@ -42,9 +43,13 @@ export const Login = () => {
   })
 
   const onSubmit = async (values: LoginDto) => {
-    await loginMutation.mutateAsync(values)
+    setErrorMessage('')
+    try {
+      await loginMutation.mutateAsync(values)
+    } catch (error) {
+      setErrorMessage('Incorrect Email or password')
+    }
   }
-
   const goToHome = () => history.push('/dashboard')
   return (
     <Container
@@ -105,6 +110,11 @@ export const Login = () => {
             />
             <ButtonLogin onClick={() => formik.handleSubmit()}
               disabled={!formik.isValid || !formik.dirty || loginMutation.isLoading}>Login</ButtonLogin>
+            {errorMessage && (
+              <Typography color="error" variant="body2" sx={{ mt: 1 }}>
+                {errorMessage}
+              </Typography>
+            )}
           </Box>
         )}
       </Formik>
