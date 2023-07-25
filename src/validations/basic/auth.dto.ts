@@ -7,14 +7,14 @@ import {
 
 export class LoginDto {
   @IsEmail(undefined, { message: 'Ingrese un email válido.' })
-  email!: string
+  email: string
   @IsString()
   @IsNotEmpty({ message: 'Ingrese la contraseña.' })
   @Length(6, 30, { message: 'La contraseña debe tener entre 6 y 30 caracteres' })
-  password!: string
+  password: string
 }
 
 export class LogoutDto {
   @IsString()
-  token!: string
+  token: string
 }
