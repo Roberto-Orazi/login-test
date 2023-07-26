@@ -1,17 +1,18 @@
 import API, { AxiosConfig } from '../../config/axios.config'
 import { User } from '../../types/types'
-import {CreateUser, UpdateUser } from '../../validations/basic/user.dto'
+import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 
 const adminResourcePath = 'http://localhost:5005/users'
+const editAdminResourcePath = 'http://localhost:5005/editusers'
 type Resource = User
 
-const create = async (dto: CreateUser):Promise<Resource> =>{
+const create = async (dto: CreateUser): Promise<Resource> => {
   const res = await API.post<Resource>(adminResourcePath, dto, await AxiosConfig())
   return res.data
 }
 
-const update = async (dto: UpdateUser): Promise<Resource> => {
-  const res = await API.put<Resource>(adminResourcePath, dto, await AxiosConfig())
+const update = async (id: string, dto: UpdateUser): Promise<Resource> => {
+  const res = await API.put<Resource>(`${editAdminResourcePath}/${id}`, dto, await AxiosConfig())
   return res.data
 }
 
@@ -28,7 +29,7 @@ export const UserService = {
   create,
   update,
   deleteUser,
-  list
+  list,
 }
 
 

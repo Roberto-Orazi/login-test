@@ -1,18 +1,18 @@
 import * as React from 'react'
 import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
-import { DataGrid, GridColDef, GridCellEditStopParams, GridCellParams } from '@mui/x-data-grid'
-import { Modal, TextField, IconButton, styled, Button, CircularProgress, Stack } from '@mui/material'
+import { DataGrid, GridCellParams, GridColDef } from '@mui/x-data-grid'
+import { Modal, TextField, styled, Button, CircularProgress, Stack } from '@mui/material'
 import { clearCredentials } from '../../utils/credentials.helper'
 import { useHistory, useLocation } from 'react-router-dom'
 import { User } from '../../types/types'
 import { Formik, Field, FormikHelpers } from 'formik'
-import { getFormikProps } from '@/utils/formik.helper'
+import { getFormikProps } from '../../utils/formik.helper'
 import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { useMutation, useQueryClient } from 'react-query'
-import createValidator from '@/utils/class-validator-formik'
+import createValidator from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
-import { RQueryKeys } from '@/types/react-query'
+import { RQueryKeys } from '../../types/react-query'
 
 interface Location {
   mode: string,
@@ -27,35 +27,82 @@ const createInitialValues: CreateUser = {
 }
 
 export const Dashboard = () => {
-
+  const [editModalOpen, setEditModalOpen] = useState(false)
   const history = useHistory()
   const location = useLocation<Location>()
-  const {data, mode = 'add'} = location.state
-
+  const { data, mode = 'add' } = location.state || {}
+  const [users, setUsers] = useState<User[]>([])
   const [title, setTitle] = useState('Add Bar')
   const [initialValues, setInitialValues] = useState<Values>(createInitialValues)
   const queryClient = useQueryClient()
 
+  const handleDeleteUser = async (id: string) => {
+    try {
+      await UserService.deleteUser(id)
+      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id))
+    } catch (error) {
+      console.error('Error deleting user:', error)
+    }
+  }
+
+  const handleAddUser = () => {
+    setInitialValues(createInitialValues)
+    setEditModalOpen(true)
+  }
+
+  const handleEdit = (id: string) => {
+    const user = users.find((user) => user.id === id)
+    if (user) {
+      setEditModalOpen(true)
+      setInitialValues({
+        fullName: user.fullName,
+        email: user.email,
+        password: user.password
+      })
+    }
+  }
+
+  const handleClose = () => {
+    setEditModalOpen(false)
+  }
   useEffect(() => {
     if (mode === 'add') setTitle('Add User')
     else if (mode === 'update') setTitle('Edit User')
-    if (mode === 'update' && data){
+    if (mode === 'update' && data) {
       setInitialValues({
         ...data
       })
     }
   }, [mode, data])
 
-  const onSuccess = () => {queryClient.invalidateQueries(RQueryKeys.email)}
-  const createMutation = useMutation(UserService.create, {onSuccess})
-  const updateMutation = useMutation(UserService.update, {onSuccess})
+  const onSuccess = () => {
+    queryClient.invalidateQueries(RQueryKeys.email)
+    setEditModalOpen(false)
+    queryClient.invalidateQueries('users')
+  }
+  const onError = (error: any, action: 'create' | 'update') => {
+    console.error(`Error while ${action === 'create' ? 'creating' : 'updating'} user:`, error)
 
-  const onSubmit = async (values: Values, formik: FormikHelpers<Values>) =>{
-    if (mode === 'add'){
+  }
+  const createMutation = useMutation(UserService.create, {
+    onSuccess,
+    onError: (error) => onError(error, 'create'),
+  })
+
+  const updateMutation = useMutation<User, unknown, UpdateUser>((dto) =>
+  UserService.update(data?.id || '', dto), {
+  onSuccess,
+  onError: (error) => onError(error, 'update'),
+})
+
+  const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
+    console.log('Form values:', values)
+    if (mode === 'add') {
       await createMutation.mutateAsync(values as CreateUser)
     } else {
       await updateMutation.mutateAsync(values as UpdateUser)
     }
+    console.log('Form values:', values)
     formik.resetForm()
   }
 
@@ -69,6 +116,15 @@ export const Dashboard = () => {
     clearCredentials()
     history.replace('/')
   }
+  useEffect(() => {
+    UserService.list()
+      .then((data) => {
+        setUsers(data)
+      })
+      .catch((error) => {
+        console.error('Error fetching users from the backend:', error)
+      })
+  }, [])
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 90 },
@@ -99,8 +155,8 @@ export const Dashboard = () => {
           display: 'flex',
           gap: '1rem'
         }}>
-          <ButtonEdit onClick={() => handleEdit(params.row)}>Edit</ButtonEdit>
-          <ButtonDelete onClick={() => handleDelete(params.row)}>Del</ButtonDelete>
+          <ButtonEdit onClick={() => handleEdit(params.row.id)}>Edit</ButtonEdit>
+          <ButtonDelete onClick={() => handleDeleteUser(params.row.id)}>Del</ButtonDelete>
         </Box>
       ),
     },
@@ -111,7 +167,6 @@ export const Dashboard = () => {
       <DataGrid
         rows={users}
         columns={columns}
-        onCellEditStop={handleCellEditStop}
         checkboxSelection
         disableRowSelectionOnClick
         isCellEditable={(params) => params.row.id !== ''}
@@ -124,46 +179,53 @@ export const Dashboard = () => {
           Logout
         </ButtonLogout>
       </Box>
-      <Modal open={editModalOpen} onClose={handleEditModalClose}>
+      <Modal open={editModalOpen} onClose={setEditModalOpen}>
         <Formik
-         enableReinitialize
-         initialValues={initialValues}
-         onSubmit={onSubmit}
-         validate={validate}
+          enableReinitialize
+          initialValues={initialValues}
+          onSubmit={onSubmit}
+          validate={validate}
         >
           {(formik) => (
             <StyledModalBox>
               <h2>{title}</h2>
-                <Stack>
-                  <Field
-                    as={TextField}
-                    name="fullName"
-                    label="Full Name"
-                    required
-                    {...getFormikProps(formik, 'fullName')}
-                  />
-                  <Field
-                    as={TextField}
-                    name="email"
-                    label="Email"
-                    required
-                    {...getFormikProps(formik, 'email')}
-                  />
-                  <Field
-                    as={TextField}
-                    name="password"
-                    label="Password"
-                    required
-                   {...getFormikProps(formik, 'password')}
-                  />
-                  <IconButton onClick={() => formik.handleSubmit()}>
-                    {
-                      isLoading
-                      && <CircularProgress/>
-                    }
+              <Stack>
+                <Field
+                  as={TextField}
+                  name="fullName"
+                  label="Full Name"
+                  required
+                  {...getFormikProps(formik, 'fullName')}
+                />
+                <Field
+                  as={TextField}
+                  name="email"
+                  label="Email"
+                  required
+                  {...getFormikProps(formik, 'email')}
+                />
+                <Field
+                  as={TextField}
+                  name="password"
+                  label="Password"
+                  required
+                  {...getFormikProps(formik, 'password')}
+                />
+                <Box sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  margin: '1rem 0',
+                  gap: '2rem'
+                }}>
+                  <ButtonSave type="submit" onClick={() => formik.handleSubmit()}>
+                    {isLoading && <CircularProgress />}
                     Save
-                    </IconButton>
-                </Stack>
+                  </ButtonSave>
+                  <ButtonDelete onClick={handleClose}>
+                    Cancel
+                  </ButtonDelete>
+                </Box>
+              </Stack>
             </StyledModalBox>
           )}
         </Formik>
@@ -186,6 +248,17 @@ const ButtonLogout = styled(Button)`
     background-color: #939292;
   }
 `
+const ButtonSave = styled(Button)`
+  background-color: #9fcfa1;
+  color: #000000;
+  padding: 0.5rem 1rem;
+  font-size: 0.875rem;
+  border-radius: 4px;
+  text-transform: none;
+  &:hover {
+    background-color: #2bb812;
+  }
+`
 
 const ButtonEdit = styled(Button)`
   background-color: #7f9280;
@@ -203,6 +276,9 @@ const ButtonDelete = styled(Button)`
   font-size: 0.875rem;
   border-radius: 4px;
   text-transform: none;
+  &:hover {
+    background-color: #db3a3a;
+  }
 `
 
 const StyledModalBox = styled(Box)`
