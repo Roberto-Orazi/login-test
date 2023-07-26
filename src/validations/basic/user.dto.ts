@@ -1,9 +1,12 @@
+import { atLeastOneCapitalLetter, atLeastOneNumber, validCharacters } from '../../utils/password.helper'
 import {
   IsEmail,
   IsNotEmpty,
   IsString,
   Length,
-  IsUUID
+  IsUUID,
+  Matches,
+  IsOptional
 } from 'class-validator'
 
 export class CreateUser {
@@ -15,9 +18,10 @@ export class CreateUser {
   @IsNotEmpty({ message: 'Ingrese el mail.' })
   email: string
 
-  @IsString()
-  @IsNotEmpty({ message: 'Ingrese la contraseña.' })
-  @Length(6, 30, { message: 'La contraseña debe tener entre 6 y 30 caracteres' })
+  @Length(6, 30, {message: 'Tiene que tener mas de 6 y menos de 30 caracteres'})
+  @Matches(atLeastOneCapitalLetter, {message: 'Tiene que tener al menos una letra mayuscula'})
+  @Matches(atLeastOneNumber, {message: 'Tiene que tener al menos un numero'})
+  @Matches(validCharacters, {message: 'Tienen que ser caracteres validos'})
   password: string
 }
 
@@ -25,16 +29,12 @@ export class UpdateUser {
   @IsUUID()
   id: string
 
+  @IsOptional()
   @IsString()
-  @IsNotEmpty({ message: 'Ingrese el nombre completo, No puede estar vacio.' })
-  fullName: string
+  @Length(2, 50)
+  fullName?: string
 
-  @IsEmail(undefined, { message: 'Ingrese un email válido.' })
-  @IsNotEmpty({ message: 'Ingrese el mail, No puede estar vacio' })
-  email: string
-
-  @IsString()
-  @IsNotEmpty({ message: 'Ingrese la contraseña, No puede estar vacio.' })
-  @Length(6, 30, { message: 'La contraseña debe tener entre 6 y 30 caracteres' })
-  password: string
+  @IsOptional()
+  @IsEmail()
+  email?: string
 }

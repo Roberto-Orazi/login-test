@@ -30,12 +30,12 @@ export const Dashboard = () => {
   const [editModalOpen, setEditModalOpen] = useState(false)
   const history = useHistory()
   const location = useLocation<Location>()
-  const { data, mode = 'add' } = location.state || {}
+  const { data } = location.state || {}
+  const [mode, setMode] = useState('add')
   const [users, setUsers] = useState<User[]>([])
-  const [title, setTitle] = useState('Add Bar')
+  const [title, setTitle] = useState('Add User')
   const [initialValues, setInitialValues] = useState<Values>(createInitialValues)
   const queryClient = useQueryClient()
-
   const handleDeleteUser = async (id: string) => {
     try {
       await UserService.deleteUser(id)
@@ -53,12 +53,13 @@ export const Dashboard = () => {
   const handleEdit = (id: string) => {
     const user = users.find((user) => user.id === id)
     if (user) {
+      setMode('update')
       setEditModalOpen(true)
       setInitialValues({
+        id,
         fullName: user.fullName,
         email: user.email,
-        password: user.password
-      })
+      } as UpdateUser)
     }
   }
 
@@ -72,6 +73,7 @@ export const Dashboard = () => {
       setInitialValues({
         ...data
       })
+
     }
   }, [mode, data])
 
@@ -90,10 +92,10 @@ export const Dashboard = () => {
   })
 
   const updateMutation = useMutation<User, unknown, UpdateUser>((dto) =>
-  UserService.update(data?.id || '', dto), {
-  onSuccess,
-  onError: (error) => onError(error, 'update'),
-})
+    UserService.update(data?.id || '', dto), {
+    onSuccess,
+    onError: (error) => onError(error, 'update'),
+  })
 
   const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
     console.log('Form values:', values)
@@ -181,13 +183,14 @@ export const Dashboard = () => {
       </Box>
       <Modal open={editModalOpen} onClose={setEditModalOpen}>
         <Formik
-          enableReinitialize
           initialValues={initialValues}
           onSubmit={onSubmit}
           validate={validate}
         >
           {(formik) => (
             <StyledModalBox>
+              <>{console.log(mode)}</>
+              <>{console.log(formik.errors)}</>
               <h2>{title}</h2>
               <Stack>
                 <Field
@@ -204,13 +207,16 @@ export const Dashboard = () => {
                   required
                   {...getFormikProps(formik, 'email')}
                 />
-                <Field
-                  as={TextField}
-                  name="password"
-                  label="Password"
-                  required
-                  {...getFormikProps(formik, 'password')}
-                />
+                {mode === 'add'
+                  && <Field
+                    as={TextField}
+                    name="password"
+                    label="Password"
+                    type="password"
+                    required
+                    {...getFormikProps(formik, 'password')}
+                  />
+                }
                 <Box sx={{
                   display: 'flex',
                   justifyContent: 'center',
@@ -233,7 +239,6 @@ export const Dashboard = () => {
     </Box>
   )
 }
-
 const ButtonLogout = styled(Button)`
   background-color: #7d7d7d;
   border: none;
