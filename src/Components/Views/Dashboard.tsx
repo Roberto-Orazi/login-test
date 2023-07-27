@@ -9,7 +9,7 @@ import { User } from '../../types/types'
 import { Formik, Field, FormikHelpers } from 'formik'
 import { getFormikProps } from '../../utils/formik.helper'
 import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
-import { useMutation, useQueryClient } from 'react-query'
+import { useMutation, useQueryClient, useQuery } from 'react-query'
 import createValidator from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
 import { RQueryKeys } from '../../types/react-query'
@@ -27,6 +27,7 @@ const createInitialValues: CreateUser = {
 }
 
 export const Dashboard = () => {
+  const USERSQUERYKEY = 'users'
   const [editModalOpen, setEditModalOpen] = useState(false)
   const history = useHistory()
   const location = useLocation<Location>()
@@ -36,6 +37,8 @@ export const Dashboard = () => {
   const [title, setTitle] = useState('Add User')
   const [initialValues, setInitialValues] = useState<Values>(createInitialValues)
   const queryClient = useQueryClient()
+  const { data: usersData } = useQuery<User[], any>(USERSQUERYKEY, UserService.list)
+
   const handleDeleteUser = async (id: string) => {
     try {
       await UserService.deleteUser(id)
@@ -89,14 +92,19 @@ export const Dashboard = () => {
   const createMutation = useMutation(UserService.create, {
     onSuccess,
     onError: (error) => onError(error, 'create'),
+    onSettled: () => queryClient.invalidateQueries(USERSQUERYKEY),
   })
 
-  const updateMutation = useMutation<User, unknown, UpdateUser>((dto) =>
-    UserService.update(data?.id || '', dto), {
-    onSuccess,
-    onError: (error) => onError(error, 'update'),
-  })
-
+  const updateMutation = useMutation<User, unknown, UpdateUser>(
+    (dto) => UserService.update(dto.id, dto),
+    {
+      onSuccess: () => {
+        queryClient.invalidateQueries(USERSQUERYKEY)
+        setEditModalOpen(false)
+      },
+      onError: (error) => onError(error, 'update'),
+    }
+  )
   const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
     console.log('Form values:', values)
     if (mode === 'add') {
@@ -104,7 +112,6 @@ export const Dashboard = () => {
     } else {
       await updateMutation.mutateAsync(values as UpdateUser)
     }
-    console.log('Form values:', values)
     formik.resetForm()
   }
 
@@ -167,7 +174,7 @@ export const Dashboard = () => {
   return (
     <Box sx={{ height: 400, width: '100%' }}>
       <DataGrid
-        rows={users}
+        rows={usersData || []}
         columns={columns}
         checkboxSelection
         disableRowSelectionOnClick
