@@ -39,15 +39,25 @@ export const Dashboard = () => {
   const queryClient = useQueryClient()
   const { data: usersData } = useQuery<User[], any>(USERSQUERYKEY, UserService.list)
 
-  const handleDeleteUser = async (id: string) => {
+  const handleDeleteUser = useMutation(
+    (id: string) => UserService.deleteUser(id),
+    {
+      // Update the user list after successful deletion
+      onSuccess: () => {
+        queryClient.invalidateQueries(USERSQUERYKEY)
+      },
+      onError: (error) => {
+        console.error('Error deleting user:', error)
+      },
+    }
+  )
+  const handleDeleteUserClick = async (id: string) => {
     try {
-      await UserService.deleteUser(id)
-      setUsers((prevUsers) => prevUsers.filter((user) => user.id !== id))
+      await handleDeleteUser.mutateAsync(id)
     } catch (error) {
       console.error('Error deleting user:', error)
     }
   }
-
   const handleAddUser = () => {
     setInitialValues(createInitialValues)
     setEditModalOpen(true)
@@ -107,11 +117,15 @@ export const Dashboard = () => {
   )
   const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
     console.log('Form values:', values)
+
     if (mode === 'add') {
+      // Add new user
       await createMutation.mutateAsync(values as CreateUser)
-    } else {
+    } else if (mode === 'update') {
+      // Update existing user
       await updateMutation.mutateAsync(values as UpdateUser)
     }
+
     formik.resetForm()
   }
 
@@ -165,7 +179,7 @@ export const Dashboard = () => {
           gap: '1rem'
         }}>
           <ButtonEdit onClick={() => handleEdit(params.row.id)}>Edit</ButtonEdit>
-          <ButtonDelete onClick={() => handleDeleteUser(params.row.id)}>Del</ButtonDelete>
+          <ButtonDelete onClick={() => handleDeleteUserClick(params.row.id)}>Del</ButtonDelete>
         </Box>
       ),
     },
