@@ -38,7 +38,7 @@ export const Dashboard = () => {
   const [initialValues, setInitialValues] = useState<Values>(createInitialValues)
   const queryClient = useQueryClient()
   const { data: usersData } = useQuery<User[], any>(USERSQUERYKEY, UserService.list)
-
+  const [formikKey, setFormikKey] = useState(0)
   const handleDeleteUser = useMutation(
     (id: string) => UserService.deleteUser(id),
     {
@@ -72,6 +72,7 @@ export const Dashboard = () => {
         fullName: user.fullName,
         email: user.email,
       } as UpdateUser)
+      setFormikKey((prevKey) => prevKey + 1)
     }
   }
 
@@ -116,10 +117,8 @@ export const Dashboard = () => {
     console.log('Form values:', values)
 
     if (mode === 'add') {
-      // Add new user
       await createMutation.mutateAsync(values as CreateUser)
     } else if (mode === 'update') {
-      // Update existing user
       await updateMutation.mutateAsync(values as UpdateUser)
     }
 
@@ -131,6 +130,12 @@ export const Dashboard = () => {
     : createValidator(UpdateUser)
 
   const isLoading = createMutation.isLoading || updateMutation.isLoading
+
+  useEffect(() => {
+    if (usersData) {
+      setUsers(usersData)
+    }
+  }, [usersData])
 
   const logout = () => {
     clearCredentials()
@@ -201,6 +206,7 @@ export const Dashboard = () => {
       </Box>
       <Modal open={editModalOpen} onClose={setEditModalOpen}>
         <Formik
+        key={formikKey}
           initialValues={initialValues}
           onSubmit={onSubmit}
           validate={validate}
