@@ -105,13 +105,11 @@ export const Dashboard = () => {
   })
 
   const updateMutation = useMutation<User, unknown, UpdateUser>(
-    (dto) => UserService.update(dto.id, dto),
+    (dto) => UserService.update(data?.id || '', dto),
     {
-      onSuccess: () => {
-        queryClient.invalidateQueries(USERSQUERYKEY)
-        setEditModalOpen(false)
-      },
+      onSuccess,
       onError: (error) => onError(error, 'update'),
+      onSettled: () => queryClient.invalidateQueries(USERSQUERYKEY),
     }
   )
   const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
