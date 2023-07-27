@@ -42,7 +42,6 @@ export const Dashboard = () => {
   const handleDeleteUser = useMutation(
     (id: string) => UserService.deleteUser(id),
     {
-      // Update the user list after successful deletion
       onSuccess: () => {
         queryClient.invalidateQueries(USERSQUERYKEY)
       },
