@@ -66,19 +66,15 @@ export const Dashboard = () => {
 
   const handleAddUser = () => {
     setInitialValues(createInitialValues)
+    setMode('add')
     setEditModalOpen(true)
+    history.push('/adduser')
   }
 
   const handleEdit = (id: string) => {
     const user = users.find((user) => user.id === id)
     if (user) {
-      setMode('update')
-      setEditModalOpen(true)
-      setInitialValues({
-        id,
-        fullName: user.fullName,
-        email: user.email,
-      } as UpdateUser)
+      history.push(`/edituser/${id}`)
     }
   }
 

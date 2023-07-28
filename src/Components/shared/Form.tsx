@@ -64,7 +64,6 @@ export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues
   const isLoading = createMutation.isLoading || updateMutation.isLoading
 
   useEffect(() => {
-    // Fetch users data here (if needed)
     const fetchUsersData = async () => {
       try {
         const usersData = await UserService.list()
