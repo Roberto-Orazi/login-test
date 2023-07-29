@@ -4,43 +4,25 @@ import Box from '@mui/material/Box'
 import { DataGrid, GridCellParams, GridColDef } from '@mui/x-data-grid'
 import { styled, Button } from '@mui/material'
 import { clearCredentials } from '../../utils/credentials.helper'
-import { useHistory, useLocation } from 'react-router-dom'
+import { useHistory} from 'react-router-dom'
 import { User } from '../../types/types'
-import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { useMutation, useQueryClient, useQuery } from 'react-query'
-import createValidator from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
-import { RQueryKeys } from '../../types/react-query'
-import { UserForm } from '../shared/Form'
-import { FormikHelpers } from 'formik'
 
-interface Location {
-  mode: string;
-  data?: User;
-}
-type Values = CreateUser | UpdateUser
 
-const createInitialValues: CreateUser = {
-  fullName: '',
-  email: '',
-  password: '',
-}
+
 
 export const Dashboard = () => {
   const queryClient = useQueryClient()
 
   const USERS_QUERY_KEY = 'users'
 
-  const [editModalOpen, setEditModalOpen] = useState(false)
 
   const history = useHistory()
 
-  const location = useLocation<Location>()
-  const { data } = location.state || {}
-  const [mode, setMode] = useState<'add' | 'update'>('add')
 
   const [users, setUsers] = useState<User[]>([])
-  const [initialValues, setInitialValues] = useState<Values>(createInitialValues)
+
 
   const { data: usersData } = useQuery(USERS_QUERY_KEY, UserService.list)
 
@@ -65,9 +47,6 @@ export const Dashboard = () => {
   }
 
   const handleAddUser = () => {
-    setInitialValues(createInitialValues)
-    setMode('add')
-    setEditModalOpen(true)
     history.push('/adduser')
   }
 
@@ -77,63 +56,6 @@ export const Dashboard = () => {
       history.push(`/edituser/${id}`)
     }
   }
-
-  const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
-    console.log('Form values:', values)
-
-    if (mode === 'add') {
-      await createMutation.mutateAsync(values as CreateUser)
-    } else if (mode === 'update') {
-      await updateMutation.mutateAsync(values as UpdateUser)
-    }
-
-    formik.resetForm()
-  }
-  useEffect(() => {
-    if (mode === 'add') setMode('add')
-    else if (mode === 'update') setMode('update')
-    if (mode === 'update' && data) {
-      setInitialValues({
-        ...data
-      })
-    }
-  }, [mode, data])
-
-  const onSuccess = () => {
-    queryClient.invalidateQueries(RQueryKeys.email)
-    setEditModalOpen(false)
-    queryClient.invalidateQueries(USERS_QUERY_KEY)
-  }
-
-  const onError = (error: any, action: 'create' | 'update') => {
-    console.error(`Error while ${action === 'create' ? 'creating' : 'updating'} user:`, error)
-  }
-
-  const createMutation = useMutation(UserService.create, {
-    onSuccess,
-    onError: (error) => onError(error, 'create'),
-    onSettled: () => queryClient.invalidateQueries(USERS_QUERY_KEY),
-  })
-
-  const updateMutation = useMutation<User, unknown, UpdateUser>(
-    (dto) => UserService.update(data?.id || '', dto),
-    {
-      onSuccess,
-      onError: (error) => onError(error, 'update'),
-      onSettled: () => queryClient.invalidateQueries(USERS_QUERY_KEY),
-    }
-  )
-
-  const validate = mode === 'add'
-    ? createValidator(CreateUser)
-    : createValidator(UpdateUser)
-
-  const isLoading = createMutation.isLoading || updateMutation.isLoading
-
-  const handleClose = () => {
-    setEditModalOpen(false)
-  }
-
 
   useEffect(() => {
     if (usersData) {
@@ -145,16 +67,6 @@ export const Dashboard = () => {
     clearCredentials()
     history.replace('/')
   }
-
-  useEffect(() => {
-    UserService.list()
-      .then((data) => {
-        setUsers(data)
-      })
-      .catch((error) => {
-        console.error('Error fetching users from the backend:', error)
-      })
-  }, [])
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 90 },
@@ -200,15 +112,6 @@ export const Dashboard = () => {
           Logout
         </ButtonLogout>
       </Box>
-      <UserForm
-        open={editModalOpen}
-        onClose={handleClose}
-        initialValues={initialValues}
-        mode={mode}
-        onSubmit={onSubmit}
-        validate={validate}
-        isLoading={isLoading}
-      />
     </Box>
   )
 }

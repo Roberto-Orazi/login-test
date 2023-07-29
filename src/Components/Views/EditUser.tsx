@@ -5,19 +5,23 @@ import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
 import { useMutation } from 'react-query'
 import { User } from '@/types/types'
+import { useHistory } from 'react-router-dom'
 
 interface EditUserProps {
-  open: boolean;
   onClose: () => void;
-  initialValues: UpdateUser | CreateUser;
+  initialValues: UpdateUser ;
 }
-
-export const EditUser: React.FC<EditUserProps> = ({ open, onClose, initialValues }) => {
+export const EditUser: React.FC<EditUserProps> = ({initialValues, onClose }) => {
+  console.log('EditUser - initialValues:', initialValues)
+  console.log('EditUser - onClose:', onClose)
   const validate = createValidator(initialValues instanceof CreateUser ? CreateUser : UpdateUser)
-
+  const history = useHistory()
+  const goHome = () => {
+    history.push('/dashboard')
+  }
   const updateMutation = useMutation<User, unknown, UpdateUser>((dto) => UserService.update('', dto), {
     onSuccess: () => {
-      onClose()
+      goHome()
     },
     onError: (error) => {
       console.error('Error while updating user:', error)
@@ -36,8 +40,7 @@ export const EditUser: React.FC<EditUserProps> = ({ open, onClose, initialValues
 
   return (
     <UserForm
-      open={open}
-      onClose={onClose}
+    onClose={onClose}
       initialValues={initialValues}
       mode={initialValues instanceof CreateUser ? 'add' : 'update'}
       onSubmit={onSubmit}

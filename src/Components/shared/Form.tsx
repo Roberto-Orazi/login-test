@@ -1,40 +1,43 @@
 import React, { useEffect } from 'react'
-import { Modal, TextField, Button, CircularProgress, Stack, Box } from '@mui/material'
+import { TextField, Button, CircularProgress, Stack, Box, styled } from '@mui/material'
 import { Formik, Field, FormikHelpers } from 'formik'
 import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
 import { useMutation, useQueryClient } from 'react-query'
 import { User } from '../../types/types'
+import { useHistory } from 'react-router-dom'
 
 interface UserFormProps {
-  open: boolean;
   onClose: () => void;
   initialValues: CreateUser | UpdateUser;
   mode: 'add' | 'update';
   onSubmit: (values: CreateUser | UpdateUser, formik: FormikHelpers<CreateUser | UpdateUser>) => Promise<void>;
   validate: (data: any) => any;
   isLoading: boolean;
-
 }
+
 
 type Values = CreateUser | UpdateUser
 
-export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues, mode }) => {
+export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
+  console.log('UserForm - onClose:', initialValues)
   const queryClient = useQueryClient()
 
   const USERS_QUERY_KEY = 'users'
-
+  const history = useHistory()
   const onSuccess = () => {
-    queryClient.invalidateQueries('email')
     onClose()
+    queryClient.invalidateQueries('email')
     queryClient.invalidateQueries(USERS_QUERY_KEY)
   }
 
   const onError = (error: any, action: 'create' | 'update') => {
     console.error(`Error while ${action === 'create' ? 'creating' : 'updating'} user:`, error)
   }
-
+  const onClose = () => {
+    history.push('/dashboard')
+  }
   const createMutation = useMutation(UserService.create, {
     onSuccess,
     onError: (error) => onError(error, 'create'),
@@ -77,7 +80,7 @@ export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues
   }, [])
 
   return (
-    <Modal open={open} onClose={onClose} sx={{
+    <Box sx={{
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
@@ -103,18 +106,35 @@ export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues
               <Field as={TextField} name="email" label="Email" required />
               {mode === 'add' && <Field as={TextField} name="password" label="Password" type="password" required />}
               <Box sx={{ display: 'flex', justifyContent: 'center', margin: '1rem 0', gap: '2rem' }}>
-                <Button type="submit" onClick={() => formik.handleSubmit()}>
+                <SaveButton type="submit" onClick={() => formik.handleSubmit()}>
                   {isLoading && <CircularProgress />}
                   Save
-                </Button>
-                <Button onClick={onClose}>Cancel</Button>
+                </SaveButton>
+                <CancelButton onClick={onClose}>Cancel</CancelButton>
               </Box>
             </Stack>
           </Box>
         )}
       </Formik>
-    </Modal>
+    </Box>
   )
 }
 
-
+const SaveButton = styled(Button)`
+background-color: #4dd14d;
+color: white;
+border-radius: 1rem;
+padding: 1rem;
+&:hover{
+  background-color: #6fe36f;
+}
+`
+const CancelButton = styled(Button)`
+background-color: #a32020;
+color: white;
+border-radius: 1rem;
+padding: 1rem;
+&:hover{
+  background-color: #a32020;
+}
+`

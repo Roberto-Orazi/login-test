@@ -4,9 +4,9 @@ import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
 import { useMutation } from 'react-query'
+import { useHistory } from 'react-router-dom'
 
 interface AddUserProps {
-  open: boolean;
   onClose: () => void;
 }
 
@@ -16,12 +16,14 @@ const initialValues: CreateUser = {
   password: '',
 }
 
-export const AddUser: React.FC<AddUserProps> = ({ open, onClose }) => {
-  const validate = createValidator(CreateUser)
+export const AddUser: React.FC<AddUserProps> = ({ onClose }) => {
+  const history = useHistory()
 
   const createMutation = useMutation(UserService.create, {
     onSuccess: () => {
-      onClose()
+      console.log('User created successfully')
+      console.log('Redirecting to /dashboard')
+      history.push('/dashboard')
     },
     onError: (error) => {
       console.error('Error while creating user:', error)
@@ -40,12 +42,11 @@ export const AddUser: React.FC<AddUserProps> = ({ open, onClose }) => {
 
   return (
     <UserForm
-      open={open}
       onClose={onClose}
       initialValues={initialValues}
       mode="add"
       onSubmit={onSubmit}
-      validate={validate}
+      validate={createValidator(CreateUser)}
       isLoading={isLoading}
     />
   )
