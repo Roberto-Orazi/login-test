@@ -5,7 +5,7 @@ import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
 import { useMutation, useQueryClient } from 'react-query'
-import { User } from '../../types/types'
+import { User,  } from '../../types/types'
 import { useHistory } from 'react-router-dom'
 
 interface UserFormProps {
@@ -23,7 +23,6 @@ type Values = CreateUser | UpdateUser
 export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
   console.log('UserForm - onClose:', initialValues)
   const queryClient = useQueryClient()
-
   const USERS_QUERY_KEY = 'users'
   const history = useHistory()
   const onSuccess = () => {

@@ -14,15 +14,10 @@ import { UserService } from '../../services/basics/user.service'
 
 export const Dashboard = () => {
   const queryClient = useQueryClient()
-
   const USERS_QUERY_KEY = 'users'
-
-
   const history = useHistory()
 
-
   const [users, setUsers] = useState<User[]>([])
-
 
   const { data: usersData } = useQuery(USERS_QUERY_KEY, UserService.list)
 
@@ -46,6 +41,7 @@ export const Dashboard = () => {
     }
   }
 
+
   const handleAddUser = () => {
     history.push('/adduser')
   }
@@ -53,9 +49,14 @@ export const Dashboard = () => {
   const handleEdit = (id: string) => {
     const user = users.find((user) => user.id === id)
     if (user) {
-      history.push(`/edituser/${id}`)
+      console.log(user)
+      history.push({
+        pathname: `/edituser/${id}`,
+        state: { initialValues: user }
+      })
     }
   }
+
 
   useEffect(() => {
     if (usersData) {
@@ -98,7 +99,7 @@ export const Dashboard = () => {
   return (
     <Box sx={{ height: 400, width: '100%' }}>
       <DataGrid
-        rows={usersData || []}
+        rows={users || []}
         columns={columns}
         checkboxSelection
         disableRowSelectionOnClick

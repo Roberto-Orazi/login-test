@@ -9,12 +9,17 @@ import { useHistory } from 'react-router-dom'
 
 interface EditUserProps {
   onClose: () => void;
-  initialValues: UpdateUser ;
+  location: {
+    state: {
+      initialValues: User;
+    };
+  };
 }
-export const EditUser: React.FC<EditUserProps> = ({initialValues, onClose }) => {
-  console.log('EditUser - initialValues:', initialValues)
+
+export const EditUser: React.FC<EditUserProps> = ({ location, onClose }) => {
+  console.log('EditUser - initialValues:', location.state.initialValues)
   console.log('EditUser - onClose:', onClose)
-  const validate = createValidator(initialValues instanceof CreateUser ? CreateUser : UpdateUser)
+  const validate = createValidator(location.state.initialValues instanceof CreateUser ? CreateUser : UpdateUser)
   const history = useHistory()
   const goHome = () => {
     history.push('/dashboard')
@@ -40,9 +45,9 @@ export const EditUser: React.FC<EditUserProps> = ({initialValues, onClose }) => 
 
   return (
     <UserForm
-    onClose={onClose}
-      initialValues={initialValues}
-      mode={initialValues instanceof CreateUser ? 'add' : 'update'}
+      onClose={onClose}
+      initialValues={location.state.initialValues}
+      mode={location.state.initialValues instanceof CreateUser ? 'add' : 'update'}
       onSubmit={onSubmit}
       validate={validate}
       isLoading={isLoading}
