@@ -51,8 +51,6 @@ export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
   })
 
   const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
-    console.log('Form values:', values)
-
     if (mode === 'add') {
       await createMutation.mutateAsync(values as CreateUser)
     } else if (mode === 'update') {
