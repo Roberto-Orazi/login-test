@@ -1,6 +1,6 @@
 import React, { useEffect } from 'react'
 import { TextField, Button, CircularProgress, Stack, Box, styled } from '@mui/material'
-import { Formik, Field, FormikHelpers, FormikErrors } from 'formik'
+import { Formik, Field, FormikHelpers, FormikErrors, FormikTouched } from 'formik'
 import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
@@ -101,15 +101,37 @@ export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
               flexDirection: 'column',
               gap: '1rem'
             }}>
-              <Field as={TextField} name="fullName" label="Full Name" required />
-              {formik.errors.fullName && <p>{formik.errors.fullName}</p>}
-              <Field as={TextField} name="email" label="Email" required />
-              {formik.errors.email && <p>{formik.errors.email}</p>}
+              <Field
+                as={TextField}
+                name="fullName"
+                label="Full Name"
+                required
+                error={formik.touched.fullName && Boolean(formik.errors.fullName)}
+                helperText={formik.touched.fullName && formik.errors.fullName}
+              />
+
+              <Field
+                as={TextField}
+                name="email"
+                label="Email"
+                required
+                error={formik.touched.email && Boolean(formik.errors.email)}
+                helperText={formik.touched.email && formik.errors.email}
+              />
+
               {mode === 'add' && 'password' in formik.values && (
                 <>
-                  <Field as={TextField} name="password" label="Password" type="password" required />
-                  {mode === 'add' && (formik.errors as FormikErrors<CreateUser>).password
-                  && <p>{(formik.errors as FormikErrors<CreateUser>).password}</p>}
+                  <Field
+                    as={TextField}
+                    name="password"
+                    label="Password"
+                    type="password"
+                    required
+                    error={(formik.touched as FormikTouched<CreateUser>).password
+                      && Boolean((formik.errors as FormikErrors<CreateUser>).password)}
+                    helperText={(formik.touched as FormikTouched<CreateUser>).password
+                      && (formik.errors as FormikErrors<CreateUser>).password}
+                  />
                 </>
               )}
 
