@@ -6,6 +6,7 @@ import { UserService } from '../../services/basics/user.service'
 import { useMutation } from 'react-query'
 import { User } from '@/types/types'
 import { useHistory } from 'react-router-dom'
+import { ELinks } from '../navigation/navigation.types'
 
 interface EditUserProps {
   onClose: () => void;
@@ -22,7 +23,9 @@ export const EditUser: React.FC<EditUserProps> = ({ location, onClose }) => {
   const validate = createValidator(location.state.initialValues instanceof CreateUser ? CreateUser : UpdateUser)
   const history = useHistory()
   const goHome = () => {
-    history.push('/dashboard')
+    history.push({
+      pathname: ELinks.dashboard,
+    })
   }
   const updateMutation = useMutation<User, unknown, UpdateUser>((dto) => UserService.update('', dto), {
     onSuccess: () => {

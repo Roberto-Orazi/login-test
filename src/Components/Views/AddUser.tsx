@@ -5,6 +5,7 @@ import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
 import { useMutation } from 'react-query'
 import { useHistory } from 'react-router-dom'
+import { ELinks } from '../navigation/navigation.types'
 
 interface AddUserProps {
   onClose: () => void;
@@ -18,12 +19,14 @@ const initialValues: CreateUser = {
 
 export const AddUser: React.FC<AddUserProps> = ({ onClose }) => {
   const history = useHistory()
-
+  const goHome = () => {
+    history.push({
+      pathname: ELinks.dashboard,
+    })
+  }
   const createMutation = useMutation(UserService.create, {
     onSuccess: () => {
-      console.log('User created successfully')
-      console.log('Redirecting to /dashboard')
-      history.push('/dashboard')
+      goHome()
     },
     onError: (error) => {
       console.error('Error while creating user:', error)

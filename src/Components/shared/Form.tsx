@@ -7,6 +7,7 @@ import { UserService } from '../../services/basics/user.service'
 import { useMutation, useQueryClient } from 'react-query'
 import { User, } from '../../types/types'
 import { useHistory } from 'react-router-dom'
+import { ELinks } from '../navigation/navigation.types'
 
 interface UserFormProps {
   onClose: () => void;
@@ -21,7 +22,6 @@ interface UserFormProps {
 type Values = CreateUser | UpdateUser
 
 export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
-  console.log('UserForm - onClose:', initialValues)
   const queryClient = useQueryClient()
   const USERS_QUERY_KEY = 'users'
   const history = useHistory()
@@ -35,7 +35,9 @@ export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
     console.error(`Error while ${action === 'create' ? 'creating' : 'updating'} user:`, error)
   }
   const onClose = () => {
-    history.push('/dashboard')
+    history.push({
+      pathname: ELinks.dashboard,
+    })
   }
   const createMutation = useMutation(UserService.create, {
     onSuccess,
@@ -85,7 +87,10 @@ export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
       justifyContent: 'center',
       alignItems: 'center',
     }}>
-      <Formik initialValues={initialValues} onSubmit={onSubmit} validate={validate}>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={onSubmit}
+        validate={validate}>
         {(formik) => (
           <Box sx={{
             backgroundColor: '#fff',
@@ -135,7 +140,12 @@ export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
                 </>
               )}
 
-              <Box sx={{ display: 'flex', justifyContent: 'center', margin: '1rem 0', gap: '2rem' }}>
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                margin: '1rem 0',
+                gap: '2rem'
+              }}>
                 <SaveButton type="submit" onClick={() => formik.handleSubmit()}>
                   {isLoading && <CircularProgress />}
                   Save

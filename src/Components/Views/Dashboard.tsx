@@ -4,10 +4,11 @@ import Box from '@mui/material/Box'
 import { DataGrid, GridCellParams, GridColDef } from '@mui/x-data-grid'
 import { styled, Button } from '@mui/material'
 import { clearCredentials } from '../../utils/credentials.helper'
-import { useHistory} from 'react-router-dom'
+import { useHistory } from 'react-router-dom'
 import { User } from '../../types/types'
 import { useMutation, useQueryClient, useQuery } from 'react-query'
 import { UserService } from '../../services/basics/user.service'
+import { ELinks } from '../navigation/navigation.types'
 
 
 
@@ -43,7 +44,9 @@ export const Dashboard = () => {
 
 
   const handleAddUser = () => {
-    history.push('/adduser')
+    history.push({
+      pathname: ELinks.addUser,
+    })
   }
 
   const handleEdit = (id: string) => {
@@ -51,7 +54,7 @@ export const Dashboard = () => {
     if (user) {
       console.log(user)
       history.push({
-        pathname: `/edituser/${id}`,
+        pathname: ELinks.editUser + '/' + id,
         state: { initialValues: user }
       })
     }
@@ -66,7 +69,9 @@ export const Dashboard = () => {
 
   const logout = () => {
     clearCredentials()
-    history.replace('/')
+    history.replace({
+      pathname: ELinks.login
+    })
   }
 
   const columns: GridColDef[] = [
