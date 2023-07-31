@@ -27,7 +27,6 @@ export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
   const history = useHistory()
   const onSuccess = () => {
     onClose()
-    queryClient.invalidateQueries('email')
     queryClient.invalidateQueries(USERS_QUERY_KEY)
   }
 

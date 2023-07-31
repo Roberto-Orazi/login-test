@@ -18,9 +18,6 @@ interface EditUserProps {
 }
 
 export const EditUser: React.FC<EditUserProps> = ({ location, onClose }) => {
-  console.log('EditUser - initialValues:', location.state.initialValues)
-  console.log('EditUser - onClose:', onClose)
-  const validate = createValidator(location.state.initialValues instanceof CreateUser ? CreateUser : UpdateUser)
   const history = useHistory()
   const goHome = () => {
     history.push({
@@ -52,7 +49,7 @@ export const EditUser: React.FC<EditUserProps> = ({ location, onClose }) => {
       initialValues={location.state.initialValues}
       mode={location.state.initialValues instanceof CreateUser ? 'add' : 'update'}
       onSubmit={onSubmit}
-      validate={validate}
+      validate={createValidator(UpdateUser)}
       isLoading={isLoading}
     />
   )
