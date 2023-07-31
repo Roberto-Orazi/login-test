@@ -31,10 +31,10 @@ export class UpdateUser {
 
   @IsOptional()
   @IsString()
-  @Length(2, 50)
+  @Length(2, 50, {message: 'Tiene que tener mas de 2 y menos de 50 caracteres'})
   fullName?: string
 
   @IsOptional()
-  @IsEmail()
+  @IsEmail(undefined, { message: 'Ingrese un email válido.' })
   email?: string
 }

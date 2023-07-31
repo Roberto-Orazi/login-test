@@ -1,11 +1,11 @@
 import React, { useEffect } from 'react'
 import { TextField, Button, CircularProgress, Stack, Box, styled } from '@mui/material'
-import { Formik, Field, FormikHelpers } from 'formik'
+import { Formik, Field, FormikHelpers, FormikErrors } from 'formik'
 import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
 import { useMutation, useQueryClient } from 'react-query'
-import { User,  } from '../../types/types'
+import { User, } from '../../types/types'
 import { useHistory } from 'react-router-dom'
 
 interface UserFormProps {
@@ -102,8 +102,17 @@ export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
               gap: '1rem'
             }}>
               <Field as={TextField} name="fullName" label="Full Name" required />
+              {formik.errors.fullName && <p>{formik.errors.fullName}</p>}
               <Field as={TextField} name="email" label="Email" required />
-              {mode === 'add' && <Field as={TextField} name="password" label="Password" type="password" required />}
+              {formik.errors.email && <p>{formik.errors.email}</p>}
+              {mode === 'add' && 'password' in formik.values && (
+                <>
+                  <Field as={TextField} name="password" label="Password" type="password" required />
+                  {mode === 'add' && (formik.errors as FormikErrors<CreateUser>).password
+                  && <p>{(formik.errors as FormikErrors<CreateUser>).password}</p>}
+                </>
+              )}
+
               <Box sx={{ display: 'flex', justifyContent: 'center', margin: '1rem 0', gap: '2rem' }}>
                 <SaveButton type="submit" onClick={() => formik.handleSubmit()}>
                   {isLoading && <CircularProgress />}
