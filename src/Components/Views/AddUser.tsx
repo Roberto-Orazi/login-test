@@ -34,11 +34,7 @@ export const AddUser: React.FC<AddUserProps> = ({ onClose }) => {
   })
 
   const onSubmit = async (values: CreateUser | UpdateUser) => {
-    if ('password' in values) {
       await createMutation.mutateAsync(values as CreateUser)
-    } else {
-      console.error('Invalid form values')
-    }
   }
 
   const isLoading = createMutation.isLoading
