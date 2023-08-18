@@ -1,24 +1,19 @@
 import * as React from 'react'
-import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import { DataGrid, GridCellParams, GridColDef } from '@mui/x-data-grid'
 import { styled, Button } from '@mui/material'
 import { clearCredentials } from '../../utils/credentials.helper'
 import { useHistory } from 'react-router-dom'
-import { User } from '../../types/types'
 import { useMutation, useQueryClient, useQuery } from 'react-query'
 import { UserService } from '../../services/basics/user.service'
 import { ELinks } from '../navigation/navigation.types'
 
 
-
+const USERS_QUERY_KEY = 'users'
 
 export const Dashboard = () => {
   const queryClient = useQueryClient()
-  const USERS_QUERY_KEY = 'users'
   const history = useHistory()
-
-  const [users, setUsers] = useState<User[]>([])
 
   const { data: usersData } = useQuery(USERS_QUERY_KEY, UserService.list)
 
@@ -42,7 +37,6 @@ export const Dashboard = () => {
     }
   }
 
-
   const handleAddUser = () => {
     history.push({
       pathname: ELinks.addUser,
@@ -50,7 +44,7 @@ export const Dashboard = () => {
   }
 
   const handleEdit = (id: string) => {
-    const user = users.find((user) => user.id === id)
+    const user = usersData?.find((user) => user.id === id)
     if (user) {
       console.log(user)
       history.push({
@@ -59,13 +53,6 @@ export const Dashboard = () => {
       })
     }
   }
-
-
-  useEffect(() => {
-    if (usersData) {
-      setUsers(usersData)
-    }
-  }, [usersData])
 
   const logout = () => {
     clearCredentials()
@@ -104,7 +91,7 @@ export const Dashboard = () => {
   return (
     <Box sx={{ height: 400, width: '100%' }}>
       <DataGrid
-        rows={users || []}
+        rows={usersData || []}
         columns={columns}
         checkboxSelection
         disableRowSelectionOnClick
@@ -121,6 +108,7 @@ export const Dashboard = () => {
     </Box>
   )
 }
+
 const ButtonLogout = styled(Button)`
   background-color: #7d7d7d;
   border: none;
@@ -135,7 +123,6 @@ const ButtonLogout = styled(Button)`
     background-color: #939292;
   }
 `
-
 
 const ButtonEdit = styled(Button)`
   background-color: #7f9280;
@@ -157,5 +144,3 @@ const ButtonDelete = styled(Button)`
     background-color: #db3a3a;
   }
 `
-
-

@@ -34,11 +34,7 @@ export const EditUser: React.FC<EditUserProps> = ({ location, onClose }) => {
   })
 
   const onSubmit = async (values: UpdateUser | CreateUser) => {
-    if ('id' in values) {
       await updateMutation.mutateAsync(values as UpdateUser)
-    } else {
-      console.error('Invalid form values')
-    }
   }
 
   const isLoading = updateMutation.isLoading

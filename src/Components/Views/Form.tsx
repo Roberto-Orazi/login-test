@@ -121,7 +121,7 @@ export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
                 helperText={formik.touched.email && formik.errors.email}
               />
 
-              {mode === 'add' && 'password' in formik.values && (
+              {mode === 'add' && (
                 <>
                   <Field
                     as={TextField}
