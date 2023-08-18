@@ -1,5 +1,5 @@
 import React from 'react'
-import { UserForm } from '../shared/Form'
+import { UserForm } from './Form'
 import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
