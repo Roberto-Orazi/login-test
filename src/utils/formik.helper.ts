@@ -1,19 +1,26 @@
 import { TextFieldProps } from "@mui/material"
-import { FormikProps } from "formik"
+import { FormikProps, FormikErrors } from "formik"
 import _ from 'lodash'
+import { CreateUser, UpdateUser } from '../validations/basic/user.dto'
 
-export const getFormikProps = (formik : FormikProps<any>, property: string, mode?: string): TextFieldProps => {
+interface CreateUserFormikErrors extends Omit<FormikErrors<CreateUser>, "password"> {
+  password?: string;
+}
+
+type FormikErrorsType = FormikErrors<CreateUser | UpdateUser> & CreateUserFormikErrors
+
+export const getFormikProps = (formik: FormikProps<any>, property: string, mode?: string): TextFieldProps => {
   const touched = _.get(formik.touched, property)
-  const errors = _.get(formik.errors, property)
-  const values = _.get(formik.values, property)
+  const errors = _.get(formik.errors as FormikErrorsType, property)
+  const value = formik.values[property]
 
-  return({
+  return {
     name: property,
     error: touched && Boolean(errors),
     helperText: touched && errors as any,
     disabled: mode === 'READ',
     onChange: formik.handleChange(property),
-    value: `${values}`,
+    value: value,
     onBlur: formik.handleBlur(property)
-  })
+  }
 }

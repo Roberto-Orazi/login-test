@@ -1,46 +1,19 @@
 import * as React from 'react'
-import { useEffect, useState } from 'react'
 import Box from '@mui/material/Box'
 import { DataGrid, GridCellParams, GridColDef } from '@mui/x-data-grid'
 import { styled, Button } from '@mui/material'
 import { clearCredentials } from '../../utils/credentials.helper'
-import { useHistory, useLocation } from 'react-router-dom'
-import { User } from '../../types/types'
-import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
+import { useHistory } from 'react-router-dom'
 import { useMutation, useQueryClient, useQuery } from 'react-query'
-import createValidator from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
-import { RQueryKeys } from '../../types/react-query'
-import { UserForm } from '../shared/Form'
-import { FormikHelpers } from 'formik'
+import { ELinks } from '../navigation/navigation.types'
 
-interface Location {
-  mode: string;
-  data?: User;
-}
-type Values = CreateUser | UpdateUser
 
-const createInitialValues: CreateUser = {
-  fullName: '',
-  email: '',
-  password: '',
-}
+const USERS_QUERY_KEY = 'users'
 
 export const Dashboard = () => {
   const queryClient = useQueryClient()
-
-  const USERS_QUERY_KEY = 'users'
-
-  const [editModalOpen, setEditModalOpen] = useState(false)
-
   const history = useHistory()
-
-  const location = useLocation<Location>()
-  const { data } = location.state || {}
-  const [mode, setMode] = useState<'add' | 'update'>('add')
-
-  const [users, setUsers] = useState<User[]>([])
-  const [initialValues, setInitialValues] = useState<Values>(createInitialValues)
 
   const { data: usersData } = useQuery(USERS_QUERY_KEY, UserService.list)
 
@@ -65,100 +38,28 @@ export const Dashboard = () => {
   }
 
   const handleAddUser = () => {
-    setInitialValues(createInitialValues)
-    setEditModalOpen(true)
+    history.push({
+      pathname: ELinks.addUser,
+    })
   }
 
   const handleEdit = (id: string) => {
-    const user = users.find((user) => user.id === id)
+    const user = usersData?.find((user) => user.id === id)
     if (user) {
-      setMode('update')
-      setEditModalOpen(true)
-      setInitialValues({
-        id,
-        fullName: user.fullName,
-        email: user.email,
-      } as UpdateUser)
-    }
-  }
-
-  const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
-    console.log('Form values:', values)
-
-    if (mode === 'add') {
-      await createMutation.mutateAsync(values as CreateUser)
-    } else if (mode === 'update') {
-      await updateMutation.mutateAsync(values as UpdateUser)
-    }
-
-    formik.resetForm()
-  }
-  useEffect(() => {
-    if (mode === 'add') setMode('add')
-    else if (mode === 'update') setMode('update')
-    if (mode === 'update' && data) {
-      setInitialValues({
-        ...data
+      console.log(user)
+      history.push({
+        pathname: ELinks.editUser + '/' + id,
+        state: { initialValues: user }
       })
     }
-  }, [mode, data])
-
-  const onSuccess = () => {
-    queryClient.invalidateQueries(RQueryKeys.email)
-    setEditModalOpen(false)
-    queryClient.invalidateQueries(USERS_QUERY_KEY)
   }
-
-  const onError = (error: any, action: 'create' | 'update') => {
-    console.error(`Error while ${action === 'create' ? 'creating' : 'updating'} user:`, error)
-  }
-
-  const createMutation = useMutation(UserService.create, {
-    onSuccess,
-    onError: (error) => onError(error, 'create'),
-    onSettled: () => queryClient.invalidateQueries(USERS_QUERY_KEY),
-  })
-
-  const updateMutation = useMutation<User, unknown, UpdateUser>(
-    (dto) => UserService.update(data?.id || '', dto),
-    {
-      onSuccess,
-      onError: (error) => onError(error, 'update'),
-      onSettled: () => queryClient.invalidateQueries(USERS_QUERY_KEY),
-    }
-  )
-
-  const validate = mode === 'add'
-    ? createValidator(CreateUser)
-    : createValidator(UpdateUser)
-
-  const isLoading = createMutation.isLoading || updateMutation.isLoading
-
-  const handleClose = () => {
-    setEditModalOpen(false)
-  }
-
-
-  useEffect(() => {
-    if (usersData) {
-      setUsers(usersData)
-    }
-  }, [usersData])
 
   const logout = () => {
     clearCredentials()
-    history.replace('/')
+    history.replace({
+      pathname: ELinks.login
+    })
   }
-
-  useEffect(() => {
-    UserService.list()
-      .then((data) => {
-        setUsers(data)
-      })
-      .catch((error) => {
-        console.error('Error fetching users from the backend:', error)
-      })
-  }, [])
 
   const columns: GridColDef[] = [
     { field: 'id', headerName: 'ID', width: 90 },
@@ -204,18 +105,10 @@ export const Dashboard = () => {
           Logout
         </ButtonLogout>
       </Box>
-      <UserForm
-        open={editModalOpen}
-        onClose={handleClose}
-        initialValues={initialValues}
-        mode={mode}
-        onSubmit={onSubmit}
-        validate={validate}
-        isLoading={isLoading}
-      />
     </Box>
   )
 }
+
 const ButtonLogout = styled(Button)`
   background-color: #7d7d7d;
   border: none;
@@ -230,7 +123,6 @@ const ButtonLogout = styled(Button)`
     background-color: #939292;
   }
 `
-
 
 const ButtonEdit = styled(Button)`
   background-color: #7f9280;
@@ -252,5 +144,3 @@ const ButtonDelete = styled(Button)`
     background-color: #db3a3a;
   }
 `
-
-

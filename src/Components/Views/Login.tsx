@@ -12,6 +12,7 @@ import CreateValidator from '../../utils/class-validator-formik'
 import { setCredentials } from '../../utils/credentials.helper'
 import { useEffect } from 'react'
 import { getCredentials } from '../../utils/credentials.helper'
+import { ELinks } from '../navigation/navigation.types'
 
 export const Login = () => {
   const initialValues: LoginDto = {
@@ -50,7 +51,9 @@ export const Login = () => {
       setErrorMessage('Incorrect Email or password')
     }
   }
-  const goToHome = () => history.push('/dashboard')
+  const goToHome = () => history.push({
+    pathname: ELinks.dashboard,
+  })
   return (
     <Container
       maxWidth="sm"

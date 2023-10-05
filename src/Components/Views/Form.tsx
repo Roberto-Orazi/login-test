@@ -1,32 +1,31 @@
 import React, { useEffect } from 'react'
-import { Modal, TextField, Button, CircularProgress, Stack, Box } from '@mui/material'
-import { Formik, Field, FormikHelpers } from 'formik'
+import { TextField, Button, CircularProgress, Stack, Box, styled } from '@mui/material'
+import { Formik, Field, FormikHelpers, FormikErrors, FormikTouched } from 'formik'
 import { CreateUser, UpdateUser } from '../../validations/basic/user.dto'
 import { createValidator } from '../../utils/class-validator-formik'
 import { UserService } from '../../services/basics/user.service'
 import { useMutation, useQueryClient } from 'react-query'
-import { User } from '../../types/types'
+import { User, } from '../../types/types'
+import { useHistory } from 'react-router-dom'
+import { ELinks } from '../navigation/navigation.types'
 
 interface UserFormProps {
-  open: boolean;
   onClose: () => void;
   initialValues: CreateUser | UpdateUser;
   mode: 'add' | 'update';
   onSubmit: (values: CreateUser | UpdateUser, formik: FormikHelpers<CreateUser | UpdateUser>) => Promise<void>;
   validate: (data: any) => any;
   isLoading: boolean;
-
 }
+
 
 type Values = CreateUser | UpdateUser
 
-export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues, mode }) => {
+export const UserForm: React.FC<UserFormProps> = ({ initialValues, mode }) => {
   const queryClient = useQueryClient()
-
   const USERS_QUERY_KEY = 'users'
-
+  const history = useHistory()
   const onSuccess = () => {
-    queryClient.invalidateQueries('email')
     onClose()
     queryClient.invalidateQueries(USERS_QUERY_KEY)
   }
@@ -34,7 +33,11 @@ export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues
   const onError = (error: any, action: 'create' | 'update') => {
     console.error(`Error while ${action === 'create' ? 'creating' : 'updating'} user:`, error)
   }
-
+  const onClose = () => {
+    history.push({
+      pathname: ELinks.dashboard,
+    })
+  }
   const createMutation = useMutation(UserService.create, {
     onSuccess,
     onError: (error) => onError(error, 'create'),
@@ -48,8 +51,6 @@ export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues
   })
 
   const onSubmit = async (values: Values, formik: FormikHelpers<Values>) => {
-    console.log('Form values:', values)
-
     if (mode === 'add') {
       await createMutation.mutateAsync(values as CreateUser)
     } else if (mode === 'update') {
@@ -64,7 +65,6 @@ export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues
   const isLoading = createMutation.isLoading || updateMutation.isLoading
 
   useEffect(() => {
-    // Fetch users data here (if needed)
     const fetchUsersData = async () => {
       try {
         const usersData = await UserService.list()
@@ -78,13 +78,16 @@ export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues
   }, [])
 
   return (
-    <Modal open={open} onClose={onClose} sx={{
+    <Box sx={{
       display: 'flex',
       flexDirection: 'column',
       justifyContent: 'center',
       alignItems: 'center',
     }}>
-      <Formik initialValues={initialValues} onSubmit={onSubmit} validate={validate}>
+      <Formik
+        initialValues={initialValues}
+        onSubmit={onSubmit}
+        validate={validate}>
         {(formik) => (
           <Box sx={{
             backgroundColor: '#fff',
@@ -100,22 +103,75 @@ export const UserForm: React.FC<UserFormProps> = ({ open, onClose, initialValues
               flexDirection: 'column',
               gap: '1rem'
             }}>
-              <Field as={TextField} name="fullName" label="Full Name" required />
-              <Field as={TextField} name="email" label="Email" required />
-              {mode === 'add' && <Field as={TextField} name="password" label="Password" type="password" required />}
-              <Box sx={{ display: 'flex', justifyContent: 'center', margin: '1rem 0', gap: '2rem' }}>
-                <Button type="submit" onClick={() => formik.handleSubmit()}>
+              <Field
+                as={TextField}
+                name="fullName"
+                label="Full Name"
+                required
+                error={formik.touched.fullName && Boolean(formik.errors.fullName)}
+                helperText={formik.touched.fullName && formik.errors.fullName}
+              />
+
+              <Field
+                as={TextField}
+                name="email"
+                label="Email"
+                required
+                error={formik.touched.email && Boolean(formik.errors.email)}
+                helperText={formik.touched.email && formik.errors.email}
+              />
+
+              {mode === 'add' && (
+                <>
+                  <Field
+                    as={TextField}
+                    name="password"
+                    label="Password"
+                    type="password"
+                    required
+                    error={(formik.touched as FormikTouched<CreateUser>).password
+                      && Boolean((formik.errors as FormikErrors<CreateUser>).password)}
+                    helperText={(formik.touched as FormikTouched<CreateUser>).password
+                      && (formik.errors as FormikErrors<CreateUser>).password}
+                  />
+                </>
+              )}
+
+              <Box sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                margin: '1rem 0',
+                gap: '2rem'
+              }}>
+                <SaveButton type="submit" onClick={() => formik.handleSubmit()}>
                   {isLoading && <CircularProgress />}
                   Save
-                </Button>
-                <Button onClick={onClose}>Cancel</Button>
+                </SaveButton>
+                <CancelButton onClick={onClose}>Cancel</CancelButton>
               </Box>
             </Stack>
           </Box>
         )}
       </Formik>
-    </Modal>
+    </Box>
   )
 }
 
-
+const SaveButton = styled(Button)`
+background-color: #4dd14d;
+color: white;
+border-radius: 1rem;
+padding: 1rem;
+&:hover{
+  background-color: #6fe36f;
+}
+`
+const CancelButton = styled(Button)`
+background-color: #a32020;
+color: white;
+border-radius: 1rem;
+padding: 1rem;
+&:hover{
+  background-color: #a32020;
+}
+`
